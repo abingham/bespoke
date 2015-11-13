@@ -20,7 +20,8 @@ class RecordFieldDescriptor:
     def __get__(self, instance, owner):
         """Retrieve the format or instance data.
 
-        When called on the class we return a NamedField instance containing the format data. For example:
+        When called on the class we return a NamedField instance containing the
+        format data. For example:
 
             line_seq_num_default = TraceHeaderRev1.line_sequence_num.default
             line_seq_num_offset = TraceHeaderRev1.line_sequence_num.offset
@@ -28,6 +29,7 @@ class RecordFieldDescriptor:
         When called on an instance we return the field value.
 
             line_seq_num = my_trace_header.line_sequence_num
+
         """
         if instance is None:
             return self._named_field
@@ -38,10 +40,14 @@ class RecordFieldDescriptor:
     def __set__(self, instance, value):
         """Set the field value."""
         try:
-            self._instance_data[instance] = self._named_field._value_type(value)
+            self._instance_data[instance] = \
+                self._named_field._value_type(value)
         except ValueError as e:
-            raise ValueError("Assigned value {!r} for {} attribute must be convertible to {}: {}"
-                             .format(value, self._name, self._named_field._value_type.__name__, e)) from e
+            msg = "Assigned value {!r} for {} \
+            attribute must be convertible to {}: {}".format(
+                value, self._name,
+                self._named_field._value_type.__name__, e)
+            raise ValueError(msg) from e
 
     def __delete__(self, instance):
         raise AttributeError("Can't delete {} attribute".format(self._name))
@@ -54,7 +60,9 @@ class RecordFieldDescriptor:
 
 
 class NamedField:
-    """Instances of NamedField can be detected by the NamedDescriptorResolver metaclass."""
+    """Instances of NamedField can be detected by the NamedDescriptorResolver
+    metaclass.
+    """
 
     def __init__(self, value_type, default, documentation):
         self._name = None  # Set later by the metaclass

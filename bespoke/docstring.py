@@ -1,4 +1,3 @@
-
 """Property decorator for the `__doc__` attribute.
 
 Useful for when you want a custom docstring for class instances

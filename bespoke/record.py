@@ -8,16 +8,20 @@ class Record:
         """Initialise a header instance.
 
         Args:
-            *args: Positional arguments are matched with header fields in the order they
-                are declared in the class definition (i.e. the same order defined by
-                the ordered_field_names() method.  From a performance perspective
-                positional arguments are faster than keyword arguments.
+            *args: Positional arguments are matched with header fields in the
+                order they are declared in the class definition (i.e. the same
+                order defined by the ordered_field_names() method. From a
+                performance perspective positional arguments are faster than
+                keyword arguments.
 
-            **kwargs: Keyword arguments are assigned to the header field of the same name.
-                Keyword argument values will overwrite any positional argument values.
+            **kwargs: Keyword arguments are assigned to the header field of the
+                same name. Keyword argument values will overwrite any
+                positional argument values.
 
         Raises:
-            TypeError: If keyword argument names do not correspond to header fields.
+            TypeError: If keyword argument names do not correspond to header
+                fields.
+
         """
         for keyword, arg in zip(self.ordered_field_names(), args):
             setattr(self, keyword, arg)
@@ -26,8 +30,9 @@ class Record:
             try:
                 getattr(self, keyword)
             except AttributeError as e:
-                raise TypeError("{!r} is not a recognised field name for {!r}"
-                                .format(keyword, self.__class__.__name__)) from e
+                raise TypeError(
+                    "{!r} is not a recognised field name for {!r}"
+                    .format(keyword, self.__class__.__name__)) from e
             else:
                 setattr(self, keyword, arg)
 
@@ -45,20 +50,27 @@ class Record:
 
         if cls is Record:
             return cls._ordered_field_names
-        return super_class(cls).ordered_field_names() + cls._ordered_field_names
+        return super_class(cls).ordered_field_names() + \
+            cls._ordered_field_names
 
     def __getattr__(self, name):
-        raise AttributeError("Object of type {!r} has no attribute {!r}".format(self.__class__.__name__, name))
+        raise AttributeError(
+            "Object of type {!r} has no attribute {!r}".format(
+                self.__class__.__name__, name))
 
     def __repr__(self):
         return "{}({})".format(
             self.__class__.__name__,
-            ', '.join("{}={}".format(k, getattr(self, k)) for k in self.ordered_field_names()))
+            ', '.join("{}={}".format(k, getattr(self, k))
+                      for k in self.ordered_field_names()))
 
     def __getstate__(self):
         state = self.__dict__.copy()
         state['__version__'] = __version__
-        state['_all_attributes'] = OrderedDict((name, getattr(self, name)) for name in self._ordered_field_names)
+        state['_all_attributes'] = OrderedDict(
+            (name, getattr(self, name))
+            for name in self._ordered_field_names)
+        
         return state
 
     def __setstate__(self, state):
