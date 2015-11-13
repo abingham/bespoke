@@ -6,8 +6,9 @@ powers.
 
 ## Quickstart
 
-In a nutshell
-´´´
+In a nutshell:
+
+```
 from bespoke.field import field
 from bespoke.record_meta import RecordMeta
 
@@ -23,4 +24,4 @@ assert p.age == 13
 
 p.name = 'Thomas'
 assert p.name == 'Thomas'
-´´´
+```
