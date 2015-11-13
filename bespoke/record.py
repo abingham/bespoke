@@ -1,3 +1,6 @@
+from collections import OrderedDict
+
+from . import __version__
 from .util import super_class
 
 

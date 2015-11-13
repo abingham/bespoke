@@ -1,6 +1,7 @@
 from weakref import WeakKeyDictionary
 
 from .docstring import docstring_property
+from .util import first_sentence
 
 
 class RecordFieldDescriptor:

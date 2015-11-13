@@ -4,12 +4,24 @@ import unittest
 from bespoke.field import field
 from bespoke.record_meta import RecordMeta
 
+NAME_DOCSTRING_FIRST_SENTENCE = "The person's name."
+NAME_DOCSTRING = """{}
+
+This is a pretty important part of the class.
+""".format(NAME_DOCSTRING_FIRST_SENTENCE)
+
+AGE_DOCSTRING_FIRST_SENTENCE = "The person's age."
+AGE_DOCSTRING = """{}
+
+It's all mental.
+""".format(AGE_DOCSTRING_FIRST_SENTENCE)
+
 
 class Person(metaclass=RecordMeta):
     name = field(str, default='',
-                 documentation="The person's name")
+                 documentation=NAME_DOCSTRING)
     age = field(int, default=0,
-                documentation="The person's age")
+                documentation=AGE_DOCSTRING)
 
 
 class RecordConstructionTests(unittest.TestCase):
@@ -56,9 +68,16 @@ class RecordFieldTests(unittest.TestCase):
             self.p.age = "I'm afraid I can't do that."
 
 
+class FieldDocstringTests(unittest.TestCase):
+    def test_field_docstring(self):
+        self.assertEqual(Person.name.__doc__, NAME_DOCSTRING_FIRST_SENTENCE)
+        self.assertEqual(Person.age.__doc__, AGE_DOCSTRING_FIRST_SENTENCE)
+
+
 class RecordPickleTests(unittest.TestCase):
     def test_pickle_and_unpickle(self):
         p = Person(name='Vlassic', age=100)
         pickled = pickle.dumps(p)
         unpickled = pickle.loads(pickled)
-        self.assertEqual(p, unpickled)
+        self.assertEqual(p.name, unpickled.name)
+        self.assertEqual(p.age, unpickled.age)
