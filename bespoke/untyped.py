@@ -1,4 +1,5 @@
 import ast
+from itertools import chain
 
 
 def _make_args(*fields):
@@ -36,11 +37,7 @@ def _make_ctor(*fields, name='__init__'):
         decorator_list=[],
         returns=None)
 
-    node = ast.Module(body=[func])
-    node = ast.fix_missing_locations(node)
-    d = {}
-    exec(compile(node, '<ast>', 'exec'), d)
-    return d[name]
+    return func
 
 
 def _make_property(name):
@@ -69,21 +66,21 @@ def _make_property(name):
         decorator_list=decorators,
         returns=None)
 
-    node = ast.Module(body=[func])
-    node = ast.fix_missing_locations(node)
-    d = {}
-    exec(compile(node, '<ast>', 'exec'), d)
-    return d[name]
+    return func
 
 
 def make_untyped_record(*fields):
     class Shell:
         pass
 
-    ctor = _make_ctor(*fields)
-    setattr(Shell, '__init__', ctor)
+    body = [_make_ctor(*fields)] + [_make_property(f) for f in fields]
 
-    for field in fields:
-        setattr(Shell, field, _make_property(field))
+    mod = ast.Module(body=body)
+    mod = ast.fix_missing_locations(mod)
+    namespace = {}
+    exec(compile(mod, '<ast>', 'exec'), namespace)
+
+    for name in chain(['__init__'], fields):
+        setattr(Shell, name, namespace[name])
 
     return Shell
