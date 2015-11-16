@@ -2,6 +2,10 @@ import ast
 from itertools import chain
 
 
+# TODO: Docstring for class
+# TODO: Docstring for properties
+# TODO: Type validators for properties
+
 def _make_args(*fields):
     return [ast.arg(f, None) for f in fields]
 
