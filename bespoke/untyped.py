@@ -1,14 +1,25 @@
 import ast
 
-class UntypedRecord:
-    pass
+
+def _make_args(*fields):
+    return [ast.arg(f, None) for f in fields]
 
 
-def _make_ctor(*fields):
+def _make_assigner(field):
+    return ast.Assign(
+        targets=[
+            ast.Attribute(
+                value=ast.Name(id='self', ctx=ast.Load()),
+                attr='_' + field,
+                ctx=ast.Store())
+        ],
+        value=ast.Name(field, ast.Load()))
+
+
+def _make_ctor(*fields, name='__init__'):
     # Define the signature for the constructor
-    ctor_args = [ast.arg('self', None)] + [ast.arg(f, None) for f in fields]
     ctor_args = ast.arguments(
-        args=ctor_args,
+        args=_make_args('self', *fields),
         vararg=None,
         kwonlyargs=[],
         kwarg=None,
@@ -16,20 +27,10 @@ def _make_ctor(*fields):
         kw_defaults=[])
 
     # Assign the paramters to attributes
-    def make_assigner(field):
-        return ast.Assign(
-            targets=[
-                ast.Attribute(
-                    value=ast.Name(id='self', ctx=ast.Load()),
-                    attr='_' + field,
-                    ctx=ast.Store())
-            ],
-            value=ast.Name(field, ast.Load()))
-
-    assigners = [make_assigner(f) for f in fields]
+    assigners = [_make_assigner(f) for f in fields]
 
     func = ast.FunctionDef(
-        name='ctor',
+        name=name,
         args=ctor_args,
         body=assigners,
         decorator_list=[],
@@ -39,13 +40,12 @@ def _make_ctor(*fields):
     node = ast.fix_missing_locations(node)
     d = {}
     exec(compile(node, '<ast>', 'exec'), d)
-    return d['ctor']
+    return d[name]
 
 
 def _make_property(name):
-    args = [ast.arg('self', None)]
     args = ast.arguments(
-        args=args,
+        args=_make_args('self'),
         vararg=None,
         kwonlyargs=[],
         kwarg=None,
