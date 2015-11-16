@@ -2,9 +2,21 @@ import ast
 from itertools import chain
 
 
-# TODO: Docstring for class
-# TODO: Docstring for properties
-# TODO: Type validators for properties
+# TODO: Type validators for properties. Could be a mess.
+
+class Field:
+    def __init__(self, name, docstring):
+        self._name = name
+        self._docstring = docstring
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def docstring(self):
+        return self._docstring
+
 
 def _make_args(*fields):
     return ast.arguments(
@@ -41,8 +53,9 @@ def _make_ctor(*fields, name='__init__'):
     return func
 
 
-def _make_property_getter(name):
+def _make_property_getter(name, docstring):
     body = [
+        ast.Expr(ast.Str(docstring)),
         ast.Return(
             ast.Attribute(
                 value=ast.Name(id='self', ctx=ast.Load()),
@@ -81,20 +94,22 @@ def _make_property_setter(name):
     return func
 
 
-def make_untyped_record(*fields):
+def make_untyped_record(*fields, docstring=''):
     class Shell:
         pass
 
-    body = chain([_make_ctor(*fields)],
-                 [_make_property_getter(f) for f in fields],
-                 [_make_property_setter(f) for f in fields])
+    body = chain([_make_ctor(*[f.name for f in fields])],
+                 [_make_property_getter(f.name, f.docstring) for f in fields],
+                 [_make_property_setter(f.name) for f in fields])
 
     mod = ast.Module(body=list(body))
     mod = ast.fix_missing_locations(mod)
     namespace = {}
     exec(compile(mod, '<ast>', 'exec'), namespace)
 
-    for name in chain(['__init__'], fields):
+    for name in chain(['__init__'], (f.name for f in fields)):
         setattr(Shell, name, namespace[name])
+
+    setattr(Shell, '__doc__', docstring)
 
     return Shell
