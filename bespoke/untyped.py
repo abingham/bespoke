@@ -7,7 +7,13 @@ from itertools import chain
 # TODO: Type validators for properties
 
 def _make_args(*fields):
-    return [ast.arg(f, None) for f in fields]
+    return ast.arguments(
+        args=[ast.arg(f, None) for f in fields],
+        vararg=None,
+        kwonlyargs=[],
+        kwarg=None,
+        defaults=[],
+        kw_defaults=[])
 
 
 def _make_assigner(attr, value):
@@ -22,21 +28,12 @@ def _make_assigner(attr, value):
 
 
 def _make_ctor(*fields, name='__init__'):
-    # Define the signature for the constructor
-    ctor_args = ast.arguments(
-        args=_make_args('self', *fields),
-        vararg=None,
-        kwonlyargs=[],
-        kwarg=None,
-        defaults=[],
-        kw_defaults=[])
-
     # Assign the paramters to attributes
     assigners = [_make_assigner('_' + f, f) for f in fields]
 
     func = ast.FunctionDef(
         name=name,
-        args=ctor_args,
+        args=_make_args('self', *fields),
         body=assigners,
         decorator_list=[],
         returns=None)
@@ -45,14 +42,6 @@ def _make_ctor(*fields, name='__init__'):
 
 
 def _make_property_getter(name):
-    args = ast.arguments(
-        args=_make_args('self'),
-        vararg=None,
-        kwonlyargs=[],
-        kwarg=None,
-        defaults=[],
-        kw_defaults=[])
-
     body = [
         ast.Return(
             ast.Attribute(
@@ -65,7 +54,7 @@ def _make_property_getter(name):
 
     func = ast.FunctionDef(
         name=name,
-        args=args,
+        args=_make_args('self'),
         body=body,
         decorator_list=decorators,
         returns=None)
@@ -74,14 +63,6 @@ def _make_property_getter(name):
 
 
 def _make_property_setter(name):
-    args = ast.arguments(
-        args=_make_args('self', 'value'),
-        vararg=None,
-        kwonlyargs=[],
-        kwarg=None,
-        defaults=[],
-        kw_defaults=[])
-
     body = [_make_assigner('_' + name, 'value')]
 
     decorators = [
@@ -92,7 +73,7 @@ def _make_property_setter(name):
 
     func = ast.FunctionDef(
         name=name,
-        args=args,
+        args=_make_args('self', 'value'),
         body=body,
         decorator_list=decorators,
         returns=None)
